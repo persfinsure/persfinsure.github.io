@@ -78,18 +78,27 @@
         data.append('timestamp', new Date().toLocaleString());
         data.append('page', window.location.href);
 
-        fetch(GOOGLE_SHEETS_URL, { method: 'POST', body: data })
-        .then(function(r) { return r.json(); })
-        .then(function(result) {
-            if (result.result === 'success') {
-                status.style.display = 'block';
-                status.style.background = '#d1fae5';
-                status.style.color = '#065f46';
-                status.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Thank you!</strong> We\'ll get back to you within 24 hours.';
-                document.getElementById('quoteModalForm').reset();
-            } else {
-                throw new Error('fail');
-            }
+        // Use URL-encoded form + no-cors to avoid CORS preflight issues with Google Apps Script
+        var params = new URLSearchParams();
+        params.append('name', name);
+        params.append('contact', contact);
+        params.append('message', message);
+        params.append('timestamp', new Date().toLocaleString());
+        params.append('page', window.location.href);
+
+        fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(function() {
+            // no-cors returns opaque response, so assume success if no network error
+            status.style.display = 'block';
+            status.style.background = '#d1fae5';
+            status.style.color = '#065f46';
+            status.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Thank you!</strong> We\'ll get back to you within 24 hours.';
+            document.getElementById('quoteModalForm').reset();
         })
         .catch(function() {
             status.style.display = 'block';
